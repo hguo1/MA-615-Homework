@@ -1,0 +1,235 @@
+---
+title: "615.Project"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+##Introduction
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+hrbrthemes::import_roboto_condensed() 
+library("esquisse")
+library(psych)
+library(tidyverse)
+library(ggplot2)
+library(purrr)
+library(plotrix)
+library(ggridges)
+library(tigerstats)
+library(lattice)
+library(mosaic)
+library(hrbrthemes)
+data.new<-read.csv("final_data.csv")
+data.new<-data.new[,-257]
+data.c.sub<-data.new[,(1:256)]
+
+```
+
+```{r,echo = FALSE}
+
+parallel <- fa.parallel(data.new, fm = 'minres', fa = 'fa')
+
+```
+
+```{r}
+TFfactor <- fa(data.c.sub,nfactors = 15,rotate = "oblimin",fm="minres") 
+print(TFfactor)
+
+```
+
+##Important in Life
+
+```{r}
+counts<-table(data.new$V4..Important.in.life..Family)
+dat<-data.frame(counts)
+barplot(counts, beside=T,xlab="Answers from People",ylab="Number of People",
+   main="How family important in your life",legend = rownames(counts),col=c("darkblue","red"))
+max.family<-max(dat$Freq)
+max.family
+```
+```{r}
+data.new$V4..Important.in.life..Family<-as.factor(data.new$V4..Important.in.life..Family)
+data.new$V240..Sex<-factor(data.new$V240..Sex,labels=c
+                           ("Males", "Females"))
+tab1<-data.new %>% group_by(V240..Sex) %>% count(V4..Important.in.life..Family)
+
+tab1$f<-rep(NA,length(tab1$V240..Sex))
+tab1$f[tab1$V4..Important.in.life..Family==-1] <- "Don't know"
+tab1$f[tab1$V4..Important.in.life..Family==-2] <- "Don't know"
+tab1$f[tab1$V4..Important.in.life..Family==1] <- "Very Important"
+tab1$f[tab1$V4..Important.in.life..Family==2] <- "Rather Important"
+tab1$f[tab1$V4..Important.in.life..Family==3] <- "Not very Important"
+tab1$f[tab1$V4..Important.in.life..Family==4] <- "Not at all Important"
+ans2<-tab1$n[tab1$V4..Important.in.life..Family==4]
+ans2
+```
+
+```{r}
+ggplot(data.new)+aes(x=factor(V4..Important.in.life..Family),y=factor(V240..Sex),color=factor(V240..Sex))+geom_jitter()+scale_color_manual(values=c("#FF5733","#3369FF"))+ ylab("")+xlab("")+labs(x="Important in life:Family")+ggtitle("Important in life:Family by gender")
+
+
+ggplot(tab1, aes(fill=V240..Sex, y=n, x=tab1$V4..Important.in.life..Family)) + 
+    geom_bar(position="stack", stat="identity")+labs(x="Important in life:Family",y="Number of People")+ggtitle("Important in life:Family by gender")
+
+
+```
+##Attitude and Belief
+```{r}
+data.new$V24..Most.people.can.be.trusted<-as.factor(data.new$V24..Most.people.can.be.trusted)
+data.new$V59..Satisfaction.with.financial.situation.of.household<-as.numeric(data.new$V59..Satisfaction.with.financial.situation.of.household)
+tab2<-data.new %>% group_by(V24..Most.people.can.be.trusted) %>% count(V59..Satisfaction.with.financial.situation.of.household)
+```
+
+```{r}
+data.new$V24..Most.people.can.be.trusted<-factor(data.new$V24..Most.people.can.be.trusted,labels = c("unknow","unknow","Most people can be trusted","need to be very careful"))
+histogram(~V59..Satisfaction.with.financial.situation.of.household|V24..Most.people.can.be.trusted,data=data.new,type="density")
+
+```
+
+
+```{r}
+data.new$V49..One.of.my.main.goals.in.life.has.been.to.make.my.parents.proud<-as.factor(data.new$V49..One.of.my.main.goals.in.life.has.been.to.make.my.parents.proud)
+data.new$V240..Sex<-as.factor(data.new$V240..Sex)
+tab3<-data.new %>% group_by(V240..Sex) %>% count(V49..One.of.my.main.goals.in.life.has.been.to.make.my.parents.proud)
+
+tab3$sex<-factor(tab3$V240..Sex,labels=c
+                           ("Males", "Fmales"))
+tab3$Agreement.level<-rep(NA,length(tab3$sex))
+tab3$Agreement.level[tab3$V49..One.of.my.main.goals.in.life.has.been.to.make.my.parents.proud==-1] <- "Don't know"
+tab3$Agreement.level[tab3$V49..One.of.my.main.goals.in.life.has.been.to.make.my.parents.proud==-2] <- "Don't know"
+tab3$Agreement.level[tab3$V49..One.of.my.main.goals.in.life.has.been.to.make.my.parents.proud==1] <- "Strong Agree"
+tab3$Agreement.level[tab3$V49..One.of.my.main.goals.in.life.has.been.to.make.my.parents.proud==2] <- "Agree"
+tab3$Agreement.level[tab3$V49..One.of.my.main.goals.in.life.has.been.to.make.my.parents.proud==3] <- "Disagree"
+tab3$Agreement.level[tab3$V49..One.of.my.main.goals.in.life.has.been.to.make.my.parents.proud==4] <- "Strong Disagree"
+```
+
+```{r}
+ggplot(tab3, aes(fill=sex, y=n, x=Agreement.level)) + 
+    geom_bar(position="stack", stat="identity")
+```
+
+
+```{r}
+data.new$V25<-as.factor(data.new$V25..Active.Inactive.membership..Church.or.religious.organization)
+data.new$V248<-as.factor(data.new$V248..Highest.educational.level.attained)
+tab4<-data.new %>% group_by(V248) %>% count(V25)
+tab4$edu<-rep(NA,length(tab4$V248))
+tab4$re<-rep(NA,length(tab4$V25))
+tab4$edu[tab4$V248==1] <- "Elementary school"
+tab4$edu[tab4$V248==3] <- "High School"
+tab4$edu[tab4$V248==9] <- "Other"
+tab4$edu[tab4$V248==7] <- "Other"
+tab4$edu[tab4$V248==5] <- "Master Degree or above"
+tab4$re[tab4$V25==-2] <- "Unknow"
+tab4$re[tab4$V25==2] <- "Active member"
+tab4$re[tab4$V25==1] <- "Inactive member"
+tab4$re[tab4$V25==0] <- "Don't belong"
+```
+
+```{r}
+ggplot(tab4, aes( y=n, x=edu)) + 
+    geom_bar(position="stack", stat="identity")+labs(x="Active Inactive membership Church or religious organization",y="Number of People")+ggtitle("Education Eackground")
+ggplot(tab4, aes(fill=edu, y=n, x=re)) + 
+    geom_bar(position="stack", stat="identity")+labs(x="Active Inactive membership Church or religious organization",y="Number of People")+ggtitle("Religious Organization &  Education Eackground")
+
+```
+```{r}
+data.new$V240..Sex<-factor(data.new$V240..Sex,labels=c("Male","Female"))
+data.new$V45..When.jobs.are.scarce..men.should.have.more.right.to.a.job.than.women<-as.numeric(data.new$V45..When.jobs.are.scarce..men.should.have.more.right.to.a.job.than.women)
+data.new$V45..When.jobs.are.scarce..men.should.have.more.right.to.a.job.than.women[data.new$V45..When.jobs.are.scarce..men.should.have.more.right.to.a.job.than.women==-1]<-8
+data.new$V45..When.jobs.are.scarce..men.should.have.more.right.to.a.job.than.women[data.new$V45..When.jobs.are.scarce..men.should.have.more.right.to.a.job.than.women==-2]<-8
+data.new$V45..When.jobs.are.scarce..men.should.have.more.right.to.a.job.than.women<-factor(data.new$V45..When.jobs.are.scarce..men.should.have.more.right.to.a.job.than.women,labels=c("Agree","Disagree","Neither","Don't Know"))
+```
+
+```{r}
+data.new$V248..Highest.educational.level.attained[data.new$V248..Highest.educational.level.attained==9] <-7
+
+data.new$V248..Highest.educational.level.attained[data.new$V248..Highest.educational.level.attained==1] <- "Elementary school"
+data.new$V248..Highest.educational.level.attained[data.new$V248..Highest.educational.level.attained==3] <- "High School"
+
+data.new$V248..Highest.educational.level.attained[data.new$V248..Highest.educational.level.attained==7] <- "Other"
+data.new$V248..Highest.educational.level.attained[data.new$V248..Highest.educational.level.attained==5] <- "Master Degree or above"
+
+```
+
+```{r}
+ggplot(data.new ,aes(x=factor(V45..When.jobs.are.scarce..men.should.have.more.right.to.a.job.than.women), y=factor(V248..Highest.educational.level.attained),
+  color=V240..Sex)) +geom_jitter(alpha=0.5)+labs(x="When jobs are scarce men should have more right to a job than women",y="Highest educational level attained")+ggtitle("Opinions about Job Problems")
+
+```
+
+```{r}
+data.new$V64..Most.important..first.choice[data.new$V64..Most.important..first.choice==-2]<-8
+data.new$V64..Most.important..first.choice[data.new$V64..Most.important..first.choice==-1]<-8
+data.new$V64..Most.important..first.choice<-factor(data.new$V64..Most.important..first.choice)
+```
+
+```{r}
+
+
+histogram(~V242..Age|V64..Most.important..first.choice,data=data.new,type="density")
+```
+
+
+
+
+
+```{r}
+data.new$V51..On.the.whole..men.make.better.political.leaders.than.women.do[data.new$V51..On.the.whole..men.make.better.political.leaders.than.women.do==-2]<-8
+data.new$V51..On.the.whole..men.make.better.political.leaders.than.women.do[data.new$V51..On.the.whole..men.make.better.political.leaders.than.women.do==-1]<-8
+data.new$V84..Interest.in.politics[data.new$V84..Interest.in.politics==-1]<-8
+data.new$V84..Interest.in.politics[data.new$V84..Interest.in.politics==-2]<-8
+data.new$political.leaders.by.gender<-factor(data.new$V51..On.the.whole..men.make.better.political.leaders.than.women.do, labels = c('Strongly Agree','Agree',"Disagree",'Strongly disagree','Unknown'))
+data.new$V84..Interest.in.politics<-factor(data.new$V84..Interest.in.politics)
+```
+
+```{r}
+ggplot(data.new)+geom_bar(position = "fill")+aes(x=V84..Interest.in.politics,fill=political.leaders.by.gender)+labs(x="Interest  in Politics",y="Count")+ggtitle("Political Toward Gender")
+```
+```{r}
+data.new$V97..Private.vs.state.ownership.of.business<-as.numeric(data.new$V97..Private.vs.state.ownership.of.business)
+tab6<-data.new %>% count(V97..Private.vs.state.ownership.of.business)
+```
+
+```{r}
+ggplot(tab6, aes(x=V97..Private.vs.state.ownership.of.business, y=n)) +
+  geom_segment( aes(x=V97..Private.vs.state.ownership.of.business, xend=V97..Private.vs.state.ownership.of.business, y=0, yend=n), color="grey") +
+  geom_point( color="#E9967A", size=8) +
+  theme_light() +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  ggtitle("Private ownership vs Government  ownership") +
+  ylab("Count")+xlab("Attude Toward Ownership")
+```
+
+```{r}
+data.new$V238..Social.class..subjective.[data.new$V238..Social.class..subjective.==-2]<-8
+data.new$V238..Social.class..subjective.[data.new$V238..Social.class..subjective.==-1]<-8
+data.new$V211..How.proud.of.nationality[data.new$V211..How.proud.of.nationality==-2]<-8
+data.new$V211..How.proud.of.nationality[data.new$V211..How.proud.of.nationality==-1]<-8
+data.new$V211..How.proud.of.nationality<-factor(data.new$V211..How.proud.of.nationality)
+tab8<-data.new %>% group_by(factor(V238..Social.class..subjective.)) %>% count(V211..How.proud.of.nationality)
+tab8$social.class<-factor(tab8$`factor(V238..Social.class..subjective.)`,labels = c("Top Class","Upper Middel Class","Middle Class","Middle Low Class","Low Class","Unknow"))
+```
+
+```{r}
+ggplot(tab8, aes(fill=social.class, y=n, x=V211..How.proud.of.nationality)) + 
+    geom_bar(position="stack", stat="identity")+ggtitle("National Identity vs Social Class")+labs(x="How proud are you to be Chinese",y = "Number")
+n8<-max(tab8$n)
+n8
+```
+
+
+
+
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+sum(data[,1]==NA)
+
