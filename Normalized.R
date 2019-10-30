@@ -21,7 +21,7 @@ write.csv(money,'money.csv')
 
 #Third Normal Form (3NF)
 normalized <- dat.normalized[ , -which(names(dat.normalized) 
-                                           %in% c("cycle", "fectransid", "lastname"))]
+                                           %in% c("cycle", "fectransid"))]
 write.csv(normalized,'normalized.csv')
 #Boyce-Codd Normal Form (BCNF or 3.5NF)
 CKeys.donorInfo<-select(normalized, contribid, contrib)
