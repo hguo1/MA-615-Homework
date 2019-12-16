@@ -1,0 +1,219 @@
+---
+title: "Final Project"
+author: "He Guo"
+date: "11/27/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+library(yelpr)
+library(leaflet)
+library(ggmosaic)
+library(dplyr)
+library(ggthemes)
+library(ggmap)
+library(tidyverse)  # data manipulation
+library(cluster)    # clustering algorithms
+library(factoextra)
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(httr,jsonlite,dplyr)
+devtools::install_github('OmaymaS/yelpr')
+ 
+```
+
+## Yelp API
+
+$~~~~$The current study get business data from Yelp API.  The study use longitude and latitude data from Yelp API to plot the map of business in Boston.
+```{r echo=FALSE, results='hide',message=FALSE}
+client.id <- 'CYnB6kSW2xzzFpNRSHjrEQ'
+client.key <- 'tGos9a9uRI6VWuBkK1EcYdNXIa1pWFOUMRoziue6b6hVoaT1aWp0EXLrO-buK_RYxK_3mgepSdxx5T5xlMstACpRR-eIRDXd4-zfr7a7EEqO3xb5JZxJswSvQ73eXXYx'
+location.ma<-"Boston, MA"
+limit <- 50
+yelp.ma<-business_search(client.key,location.ma,limit)
+business.ma<-yelp.ma$businesses
+coordinates.ma<-business.ma$coordinates
+
+```
+
+```{r, echo = FALSE}
+qmplot(longitude, latitude, data =coordinates.ma)
+```
+
+$~~~~$The current study get business data from Yelp API.  The study use longitude and latitude data from Yelp API to plot the map of business in New York.
+
+```{r echo=FALSE, results='hide',message=FALSE}
+
+location.nyc<-"New York, NY"
+limit <- 50
+yelp.nyc<-business_search(client.key,location.nyc,limit)
+business.nyc<-yelp.nyc$businesses
+coordinates.nyc<-business.nyc$coordinates
+qmplot(longitude, latitude, data =coordinates.nyc)
+```
+
+```{r echo=FALSE, results='hide',message=FALSE}
+review.NeptuneOyster<-business_search_review(client.key,'y2w6rFaO0XEiG5mFfOsiFA')
+review.NeptuneOyster<-review.NeptuneOyster$reviews
+```
+## Cluster Analysis for business dataset
+$~~~~$This study want to apply cluster analysis to get the sub group of yelp business data set.  The study want to see each business in yelp business dataset in  the same subgroup to be similar, and  businesses in yelp business dataset from different subgroup to be different.
+
+## Data Preparation
+
+$~~~~$This study random select 10000 sample from yelp business sample size, and get the numeric information need to be used to do furture analysis.   Next the study remove the missing value.  The study pick the stars of business and review count of business as interested variable and apply cluster analysis to that variable.  The cluster analysis is based on the  stars of business and review count of business.  
+
+```{r, echo = FALSE}
+yelp.business<-read.csv("business.csv")
+cluster.B<-yelp.business %>%
+  select(business_id,stars, review_count)
+rownames(cluster.B) <- c()
+rownames(cluster.B) <- cluster.B[,1]
+cluster.B <- cluster.B[,-1]
+cluster.B<-na.omit(cluster.B)
+
+
+```
+
+## Computing k-means clustering
+
+$~~~~$This data want to cluster data into four clusters, and generate 25 initial configurations.
+
+```{r, echo = FALSE}
+k2 <- kmeans(cluster.B, centers = 4, nstart = 25)
+
+```
+
+### Using fviz_cluster
+
+$~~~~$This methods could visualized the cluster the study did.
+
+```{r, echo = FALSE}
+fviz_cluster(k2, data = cluster.B)
+```
+
+## Using fviz_cluster
+
+$~~~~$This study also want to plot cluster with the business_id as their label on it.  Based on the plot the study can know that the business from cluster group 1 have zero review count.  Business from cluster group 1 have more review count and higher stars than business cluster group 2.  Business from cluster group 3 have more review count and higher stars than business cluster group 2. Business from cluster group 4 have more review count and higher stars than business cluster group 3.
+
+
+```{r, echo = FALSE}
+cluster.B %>%
+  as_tibble() %>%
+  mutate(cluster = k2$cluster,
+         state = row.names(cluster.B)) %>%
+  ggplot(aes(stars, review_count, color = factor(cluster), label = state)) +
+  geom_text()
+```
+
+## Using fviz_cluster
+
+$~~~~$This study gets the cluster after apply cluster analysis, then put the culster into yelp.business data frame.  The study want to draw the map based on the cluster.  The study use qmplot to draw the loaction mqp for four cluster data frame, which are yelp.business.C1, yelp.business.C2, yelp.business.C3, yelp.business.C4. 
+```{r, echo = FALSE}
+cluster = k2$cluster
+yelp.business$cluster=cluster
+yelp.business$cluster=as.factor(yelp.business$cluster)
+yelp.business.C1<-subset(yelp.business,yelp.business$cluster==1)
+yelp.business.C2<-subset(yelp.business,yelp.business$cluster==2)
+yelp.business.C3<-subset(yelp.business,yelp.business$cluster==3)
+yelp.business.C4<-subset(yelp.business,yelp.business$cluster==4)
+```
+
+
+## Cluster 1
+$~~~~$Business in Cluster type 1 data frame are located in 14 states.  The sate cotains largest number of business in cluster group 1 is AZ.
+```{r, echo = FALSE}
+tab.C1<-yelp.business.C1%>%count(state,sort = T)
+knitr::kable(head(tab.C1))%>%kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+qmplot(longitude, latitude, data =yelp.business.C1)
+```
+
+## Cluster 2
+$~~~~$Business in Cluster group 2 data frame are located in 4 states.  The sate cotains largest number of business in cluster group 2 is NV.
+
+
+```{r, echo = FALSE}
+tab.C2<-yelp.business.C2%>%count(state,sort = T)
+knitr::kable(head(tab.C2))%>%kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+qmplot(longitude, latitude, data =yelp.business.C2)
+```
+
+## Cluster 3
+$~~~~$Business in Cluster group 3 data frame are located in 10 states.  The sate cotains largest number of business in cluster group 3 is NV.
+
+
+```{r, echo = FALSE}
+tab.C3<-yelp.business.C3%>%count(state,sort = T)
+knitr::kable(head(tab.C3))%>%kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+qmplot(longitude, latitude, data =yelp.business.C3)
+```
+
+
+## Cluster 4
+$~~~~$Business in Cluster group 4 data frame are located in 11 states.  The sate cotains largest number of business in cluster group 4 is AZ.
+```{r, echo = FALSE}
+
+tab.C4<-yelp.business.C4%>%count(state,sort = T)
+knitr::kable(head(tab.C4))%>%kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+
+qmplot(longitude, latitude, data =yelp.business.C4)
+```
+
+## Discussion
+
+$~~~~$Based on the cluster analysis, the study find out AZ have more business in cluster group 1 and  cluster group 4.  It means that the number of business with low review count in AZ is the largest, and the number of business with with high stars and large review count in AZ is the largest.  However, we can see that the number of business in AZ is the largest.  Maybe, this is the reason business in AZ take a large propoation in cluster group 1 and cluster group 4.
+```{r, echo = FALSE}
+countState<-yelp.business%>%count(state, sort = T)
+knitr::kable(head(countState))%>%kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## Stars and Photo
+
+$~~~~$The study are interesting the distribution of business stars with photo or without photo.  The study take a sample data frame from photo jason file in Yelp data set.  This study use leftjoin to combine the photo data frame and business data frame.  Left joint will keep the all row of left data frame.  It means that  if a business_id is not contained in photo data set, The row contain this business id will return NA for photo_id columns. The study trades NA as this business has no photo on Yelp.  
+```{r, echo = FALSE}
+yelp.photo<-read.csv("photo.csv")
+yelp.photo$business_id<-as.character(yelp.photo$business_id)
+yelp.business$business_id<-as.character(yelp.business$business_id)
+business.photo<-left_join(yelp.business,yelp.photo, by = "business_id")
+business.photo$has.photo[is.na(business.photo$photo_id)==TRUE]<-"Doesn't have Photo"
+business.photo$has.photo[is.na(business.photo$photo_id)==FALSE]<-"Has Photo"
+business.photo$stars<-as.factor(business.photo$stars)
+business.photo$has.photo<-as.factor(business.photo$has.photo)
+```
+
+
+$~~~~$ According to the following plot, a lot of business do not have photo. The study take the sample of photo data file and business file.  It may cauese that a lot of business do not have photo.  Based what we have for now, when business have more photo, the stars for thoes business will aries to 3.5 to 4.5.  There is a big surprise that only a few business, which have 5 starts, have photo.  
+
+$~~~~$ The plots used to analyze  the distribution of stars for business with photo and without photo are  mosaic plots. The mosaic plot is a graphical representation of the 2 kinds of frequency table.  The mosaic plot is been divide by rectangles, then  vertical length is the proportion of has.photo variable on y axis in each level of stars variable on axis. 
+```{r, echo = FALSE}
+ ggplot(data = business.photo) +
+   geom_mosaic(aes(x = product(stars), fill=has.photo))   + 
+    scale_fill_manual(values=c( "#9999CC", "#66CC99"))+theme(text=element_text(size=16))+theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+   labs(x = "Stars for Each Business")+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+
+```
+
+```{r, echo = FALSE}
+
+business.photo$label<-as.factor(business.photo$label)
+business.photo$stars<-as.factor(business.photo$stars)
+business.photo$has.photo<-as.factor(business.photo$has.photo)
+```
+
+
+
+$~~~~$ According to the following figure, business with more than 4 stars has more picture witl outside business, inside business, and menu.  For business has star picture with inside label take the largest propotion.  Then, the study conclude that including more more picture witl outside business, inside business, and menu could help business to receive more higher stars.
+
+$~~~~$The plots used to analyze the the distribution of stars for business with different photo is mosaic plots.The mosaic plot is a graphical representation of the 2 kinds of frequency table.  The mosaic plot is been divide by rectangles, then  vertical length is the proportion of photo label variable on y axis in each level of stars variable on axis . 
+
+```{r, echo = FALSE}
+Yelp.Lable<-business.photo%>%select(stars,label)
+Yelp.Lable<-na.omit(Yelp.Lable)
+ggplot(data = Yelp.Lable) +
+   geom_mosaic(aes(x = product(stars), fill=label)) +
+   labs(x = "Stars for Each Business") +theme(text=element_text(size=16))+theme(axis.text.x = element_text(angle = 45, hjust = 1))+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())+ 
+    scale_fill_viridis_d(option="plasma")+
+  scale_color_viridis_d(option="plasma")
+```
+

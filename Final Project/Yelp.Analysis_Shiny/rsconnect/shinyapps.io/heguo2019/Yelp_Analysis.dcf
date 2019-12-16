@@ -1,0 +1,12 @@
+name: Yelp_Analysis
+title: Yelp_Analysis
+username:
+account: heguo2019
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1604794
+bundleId: 2673304
+url: https://heguo2019.shinyapps.io/Yelp_Analysis/
+when: 1576531113.0769
+asMultiple: FALSE
+asStatic: FALSE
