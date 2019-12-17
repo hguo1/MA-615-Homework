@@ -24,28 +24,8 @@ library(reshape2)
 library(highcharter)
 library(shinycssloaders)
 library(shinyWidgets)
-############################Map API############################
-devtools::install_github('OmaymaS/yelpr')
-client.id <- 'CYnB6kSW2xzzFpNRSHjrEQ'
-client.key <- 'tGos9a9uRI6VWuBkK1EcYdNXIa1pWFOUMRoziue6b6hVoaT1aWp0EXLrO-buK_RYxK_3mgepSdxx5T5xlMstACpRR-eIRDXd4-zfr7a7EEqO3xb5JZxJswSvQ73eXXYx'
-location.ma<-"Boston, MA"
-limit <- 50
-yelp.ma<-business_search(client.key,location.ma,limit)
-business.ma<-yelp.ma$businesses
-coordinates.ma<-business.ma$coordinates
-coordinates.ma$name<-business.ma$name
-boston <- leaflet(coordinates.ma) %>%
-  addTiles() %>%  
-  addMarkers(~longitude, ~latitude, popup=~name)
-location.nyc<-"New York, NY"
-limit <- 50
-yelp.nyc<-business_search(client.key,location.nyc,limit)
-business.nyc<-yelp.nyc$businesses
-coordinates.nyc<-business.nyc$coordinates
-coordinates.nyc$name<-business.nyc$name
-nyc <- leaflet(coordinates.nyc) %>%
-  addTiles() %>%  
-  addMarkers(~longitude, ~latitude, popup=~name)
+
+
 
 #################cluster group############################################################
 yelp.business<-read.csv("business.csv")
@@ -63,6 +43,15 @@ yelp.business.C1<-subset(yelp.business,yelp.business$cluster==1)
 yelp.business.C2<-subset(yelp.business,yelp.business$cluster==2)
 yelp.business.C3<-subset(yelp.business,yelp.business$cluster==3)
 yelp.business.C4<-subset(yelp.business,yelp.business$cluster==4)
+yelp.business%>%count(city, sort = T)
+business.Las.Vegas <-subset(yelp.business,yelp.business$city=="Las Vegas")
+business.Phoenix<-subset(yelp.business,yelp.business$city=="Phoenix")
+Las.Vegas <- leaflet(business.Las.Vegas) %>%
+  addTiles() %>%  
+  addMarkers(~longitude, ~latitude, popup=~name)
+Phoenix<- leaflet(business.Phoenix) %>%
+  addTiles() %>%  
+  addMarkers(~longitude, ~latitude, popup=~name)
 ##################################Stars############################################################
 yelp.photo<-read.csv("photo.csv")
 yelp.photo$business_id<-as.character(yelp.photo$business_id)
@@ -99,6 +88,7 @@ Rate_words <- re.mining %>%
 total_words <- Rate_words %>% 
   group_by(review.Rate) %>% 
   summarize(total = sum(n))
+book_words <- left_join(Rate_words, total_words)
 book_words<-na.omit(book_words)
 book_words <- left_join(Rate_words, total_words)
 freq_by_rank <- book_words %>% 
@@ -132,10 +122,10 @@ mining_tf_idf <- bigrams_united %>%
 
 ui <- fluidPage(theme = shinytheme("slate"),
                 navbarPage("Yelp Analysis",
-                 tabPanel("Map from API",
+                 tabPanel("Business on Yelp",
                           fluidRow(column(4,wellPanel(radioButtons("apiMap", "Choose a city:",
-                                                                   c("New York" = "nyc",
-                                                                     "Boston" = "bos")))),
+                                                                   c("Las Vegas" = "LV",
+                                                                     "Phoenix" = "pho")))),
                                    column(8,wellPanel(addSpinner(leafletOutput("mapPlot"), spin = "cube", color = "#999999"))))
                           
                           
@@ -178,10 +168,10 @@ ui <- fluidPage(theme = shinytheme("slate"),
 server <- function(input, output) {
 
   output$mapPlot <- renderLeaflet({
-    if(input$apiMap=="nyc"){
-      nyc
+    if(input$apiMap=="LV"){
+      Las.Vegas
     }else{
-      boston
+      Phoenix
     }
   })
   output$clusterPlot <- renderPlot({

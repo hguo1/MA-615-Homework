@@ -1,0 +1,12 @@
+name: heguofinalapp
+title: HeGuoFinalApp
+username: heguo5
+account: heguo5
+server: bu-rstudio-connect.bu.edu
+hostUrl: http://bu-rstudio-connect.bu.edu:3939/__api__
+appId: 77
+bundleId: 153
+url: http://bu-rstudio-connect.bu.edu:3939/content/77/
+when: 1576538853.82532
+asMultiple: FALSE
+asStatic: FALSE
