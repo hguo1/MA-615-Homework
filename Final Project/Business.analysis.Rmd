@@ -25,7 +25,7 @@ devtools::install_github('OmaymaS/yelpr')
 
 ## Yelp API
 
-$~~~~$The current study get business data from Yelp API.  The study use longitude and latitude data from Yelp API to plot the map of business in Boston.
+$~~~~$The current study gets business data from Yelp API.  The study uses longitude and latitude data from Yelp API to plot the map of business in Boston.
 ```{r echo=FALSE, results='hide',message=FALSE}
 client.id <- 'CYnB6kSW2xzzFpNRSHjrEQ'
 client.key <- 'tGos9a9uRI6VWuBkK1EcYdNXIa1pWFOUMRoziue6b6hVoaT1aWp0EXLrO-buK_RYxK_3mgepSdxx5T5xlMstACpRR-eIRDXd4-zfr7a7EEqO3xb5JZxJswSvQ73eXXYx'
@@ -62,7 +62,7 @@ $~~~~$This study want to apply cluster analysis to get the sub group of yelp bus
 
 ## Data Preparation
 
-$~~~~$This study random select 10000 sample from yelp business sample size, and get the numeric information need to be used to do furture analysis.   Next the study remove the missing value.  The study pick the stars of business and review count of business as interested variable and apply cluster analysis to that variable.  The cluster analysis is based on the  stars of business and review count of business.  
+$~~~~$This study random select 10000 observations from yelp business data set , and get the numeric information need to be used in furture analysis.   Next the study removes the missing value.  The study picks the stars of business and review count of business as interested variable and apply cluster analysis to those variable.  The cluster analysis is based on the  stars of business and review count of business.  
 
 ```{r, echo = FALSE}
 yelp.business<-read.csv("business.csv")
@@ -78,7 +78,7 @@ cluster.B<-na.omit(cluster.B)
 
 ## Computing k-means clustering
 
-$~~~~$This data want to cluster data into four clusters, and generate 25 initial configurations.
+$~~~~$This study want to use cluster analysis splits observation into  four clusters, and generate 25 initial configurations based on review count and stars.
 
 ```{r, echo = FALSE}
 k2 <- kmeans(cluster.B, centers = 4, nstart = 25)
@@ -95,7 +95,7 @@ fviz_cluster(k2, data = cluster.B)
 
 ## Using fviz_cluster
 
-$~~~~$This study also want to plot cluster with the business_id as their label on it.  Based on the plot the study can know that the business from cluster group 1 have zero review count.  Business from cluster group 1 have more review count and higher stars than business cluster group 2.  Business from cluster group 3 have more review count and higher stars than business cluster group 2. Business from cluster group 4 have more review count and higher stars than business cluster group 3.
+$~~~~$This study also want to plot cluster with the business_id as their label on it.  Based on the plot the study can know that the business from cluster group 1 have zero review count.  Business from cluster group 2 have more review count and higher stars than business cluster group 1.  Business from cluster group 3 have more review count and higher stars than business cluster group 2. Business from cluster group 4 have more review count and higher stars than business cluster group 3.
 
 
 ```{r, echo = FALSE}
@@ -170,7 +170,7 @@ knitr::kable(head(countState))%>%kableExtra::kable_styling(bootstrap_options = c
 
 ## Stars and Photo
 
-$~~~~$The study are interesting the distribution of business stars with photo or without photo.  The study take a sample data frame from photo jason file in Yelp data set.  This study use leftjoin to combine the photo data frame and business data frame.  Left joint will keep the all row of left data frame.  It means that  if a business_id is not contained in photo data set, The row contain this business id will return NA for photo_id columns. The study trades NA as this business has no photo on Yelp.  
+$~~~~$The study are interesting the distribution of business stars with photo and without photo.  The study take a sample data frame from photo jason file in Yelp data set.  This study use left_join to combine the photo data frame and business data frame.  Left joint will keep the all row of left data frame.  It means that  if a business_id is not contained in photo data set, The row of this business id will return NA for its photo_id columns. The study trades NA as this business has no photo on Yelp.  
 ```{r, echo = FALSE}
 yelp.photo<-read.csv("photo.csv")
 yelp.photo$business_id<-as.character(yelp.photo$business_id)
@@ -203,7 +203,7 @@ business.photo$has.photo<-as.factor(business.photo$has.photo)
 
 
 
-$~~~~$ According to the following figure, business with more than 4 stars has more picture witl outside business, inside business, and menu.  For business has star picture with inside label take the largest propotion.  Then, the study conclude that including more more picture witl outside business, inside business, and menu could help business to receive more higher stars.
+$~~~~$ According to the following figure, business with more than 4 stars has more picture witl outside business, inside business, and menu. Business, which has star picture with inside label, take the largest propotion.  Then, the study conclude that including more more picture witl outside business, inside business, and menu could help business to receive more higher stars.
 
 $~~~~$The plots used to analyze the the distribution of stars for business with different photo is mosaic plots.The mosaic plot is a graphical representation of the 2 kinds of frequency table.  The mosaic plot is been divide by rectangles, then  vertical length is the proportion of photo label variable on y axis in each level of stars variable on axis . 
 

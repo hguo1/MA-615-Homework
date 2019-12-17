@@ -29,7 +29,7 @@ library(reshape2)
 $~~~$ This study use review file in Yelp dataset.  There is a stars variable record the stars of each business.  This study wants to mark the stars of thoes business as High, Mid, and Low.  When stars greater to 4, rate is High.  When stars is greater and equals to 3, and lower and equals to 4, rate is Mid.  When stars is lower than 3, rate is Low.
 
 
-$~~~$The study apply text analysis by using text variable and rate variable.  Text is review from users of each business.  At first, the study separate the text variable in to words.  In the other words, the study splits sentences into words, and group by the Rate variable.  Since this study wants to analysis review between different Rate.  
+$~~~$The study apply text analysis by using text variable and rate variable.  Text is review from users about  business in Yelp.  At first, the study separate the text variable in to words.  In the other words, the study splits sentences into words, and group by the Rate variable.  Since this study wants to analysis review for different Rate.  
 ```{r, echo = FALSE}
 review <- read.csv("review.csv")
 review$Rate[review$stars>4]<-"High"
@@ -55,7 +55,7 @@ T.mining_sentiment <- T.mining %>%
 ```
 
 
-$~~~$ According to the following plot, users post positive review to business in High and mid Rate.  Users post a higher positive sentiment score to business in High Rate.  There are some negative score to business in low Rate.  It means that people will post neigative review to  business in low Rate.  
+$~~~$ According to the following plot, users post positive review to business in High and Mid Rate.  Users post a higher positive sentiment score to business in High Rate.  There are some negative score to business in low Rate.  It means that people will post neigative review to  business in low Rate.  
 ```{r, echo = FALSE}
 
 
@@ -117,7 +117,7 @@ total_words <- Rate_words %>%
 book_words <- left_join(Rate_words, total_words)
 ```
 
-$~~~$n is  is the number of times that word is used in Reviews text and total is the total words in Reviews text. In the followling figure, it shows that  the distribution of n/total for each Rate category.  
+$~~~$n is the number of times that word is used in Reviews text and total is the total words in Reviews text. In the followling figure, it shows that  the distribution of n/total for each Rate category.  
 
 ```{r, echo = FALSE}
 book_words<-na.omit(book_words)
